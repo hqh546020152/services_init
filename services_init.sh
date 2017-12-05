@@ -4,24 +4,31 @@
 
 #将history.sh文件放置于跟该脚本同级目录
 #定义ssh使用的端口
-OpenSSH_port=51804
+OpenSSH_port=
 dropbear_port=22
 #是否使用密码方式登录，no则表示不允许
 pass_login=yes
 #是否允许root用户直接登录，no则表示不允许
 root_login=yes
+#是否检查yum源，并更新为ali_yum源，不需要则注释掉
+install_yum
 
-if [ -d /etc/yum.repos.d/backup ];then
-	echo "aliyun"	
-else
-	cd /etc/yum.repos.d/
-	mkdir backup
-	mv *.repo ./backup
-	wget -O ./CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
-	yum clean all
-  	yum makecache
-  	yum -y update
-fi
+
+[ ! $OpenSSH_port ] && echo "OpenSSH_port 为空，请定义ssh使用的端口" && exit 7
+
+install_yum(){
+	if [ -d /etc/yum.repos.d/backup ];then
+		echo "aliyun"	
+	else
+		cd /etc/yum.repos.d/
+		mkdir backup
+		mv *.repo ./backup
+		wget -O ./CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+		yum clean all
+  		yum makecache
+  		yum -y update
+	fi
+}
 
 #使用版本2，centos7不允许使用1版本
 sed -i '1,$s/#Protocol 2/Protocol 2/' /etc/ssh/sshd_config
